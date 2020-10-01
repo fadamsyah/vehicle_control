@@ -15,6 +15,7 @@
 #define max_delay  650 // If the delay between the two pulses is too long,
                        // the stepper will fail if the timing at that time is small.
                        // Therefore, the timing of the stepper must be reset to initial timing
+
 #define N 5
 const int limit[N] = {450, 200, 150, 125, 100}; // Microsecond || The limit of the stepper's timing of the first, second, & third acceleration
                                                      // i.e. the MINIMUM timing of the stepper motor

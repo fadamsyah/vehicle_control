@@ -13,6 +13,7 @@ sys.path.append(os.path.abspath(sys.path[0] + '/../src/Python'))
 from ekf_2d_imu import imu_ekf_2d
 
 # Frame
+yawc_imu = 0.0
 yawc_compass = - np.pi/2 # CEK LAGI MANA YANG BENER !
 gnss_compass_var_max = 0.02
 gnss_compass_vel_min = 0.25 # m/s
