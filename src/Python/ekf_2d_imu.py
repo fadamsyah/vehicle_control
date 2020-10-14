@@ -108,6 +108,18 @@ class imu_ekf_2d(object):
         self._correct_state_from_inno(dx)
         self._correct_cov_sys(K, H_velocity, J)
 
+    def correct_vehicle_movement_constraint(self, J):
+        H_vmc = np.zeros((1,8))
+        H_vmc[:, 2:4] = (self._yaw_to_rot(self.yaw).T)[1]
+        H_vmc[:, 4] = np.dot(self._yaw_to_rot_dot(self.yaw).T, self.v)[1]
+
+        K = self._kalman_gain(H_vmc, J)
+        inno = np.array([0. - self.v[-1]])
+        dx = np.dot(K, inno)
+
+        self._correct_state_from_inno(dx)
+        self._correct_cov_sys(K, H_vmc, J)
+
 print("Please Wait ...")
 print("The imu_ekf_2d class is being compiled ...")
 
@@ -128,6 +140,7 @@ Q[5, 5] = var_bw
 J_gnss = np.eye(2) * 4.
 J_compass = np.array([[0.075]])
 J_velocity = np.eye(2)
+J_vmc = np.array([[0.1]])
 
 ekf = imu_ekf_2d(np.zeros(2), np.zeros(2), 0.5, np.zeros(2), 0.5, np.zeros((8,8)), Q, yawc_imu)
 
@@ -143,5 +156,6 @@ _ = ekf.predict(0.1, np.zeros(2), 0.5)
 _ = ekf.correct_compass(0.5, J_compass)
 _ = ekf.correct_gnss_2d(np.zeros(2), J_gnss)
 _ = ekf.correct_velocity_2d(np.array([1.0, 0.0]), J_velocity)
+_ = ekf.correct_vehicle_movement_constraint(J_vmc)
 
 print("The imu_ekf_2d class has been compiled !")
