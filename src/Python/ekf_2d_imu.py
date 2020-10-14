@@ -57,11 +57,8 @@ class imu_ekf_2d(object):
 
         L = np.zeros((8,6))
         L[:2,:2] = dt**2/2 * C
-        L[:2,3:5] = - dt**2/2 * C
         L[2:4,:2] = dt*C
-        L[2:4,3:5] = - dt*C
         L[4,2] = dt
-        L[4,5] = -dt
         L[5:,3:] = np.eye(3)
 
         Q = np.copy(self.Q)
