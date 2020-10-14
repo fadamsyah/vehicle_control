@@ -96,11 +96,23 @@ class imu_ekf_2d(object):
         self._correct_state_from_inno(dx)
         self._correct_cov_sys(K, self.H_gnss, J)
 
+    def correct_velocity_2d(self, v2d, J):
+        H_velocity = np.zeros((2,8))
+        H_velocity[:, 2:4] = self._yaw_to_rot(self.yaw).T
+        H_velocity[:, 4] = np.dot(self._yaw_to_rot_dot(self.yaw).T, self.v)
+
+        K = self._kalman_gain(H_velocity, J)
+        inno = v2d - np.dot(self._yaw_to_rot(self.yaw).T, self.v)
+        dx = np.dot(K, inno)
+
+        self._correct_state_from_inno(dx)
+        self._correct_cov_sys(K, H_velocity, J)
+
 print("Please Wait ...")
 print("The imu_ekf_2d class is being compiled ...")
 
 # COMPILING
-yawc_imu = np.pi/2
+yawc_imu = 0.
 
 var_a = 0.5
 var_w = 0.1
@@ -115,6 +127,7 @@ Q[5, 5] = var_bw
 
 J_gnss = np.eye(2) * 4.
 J_compass = np.array([[0.075]])
+J_velocity = np.eye(2)
 
 ekf = imu_ekf_2d(np.zeros(2), np.zeros(2), 0.5, np.zeros(2), 0.5, np.zeros((8,8)), Q, yawc_imu)
 
@@ -129,5 +142,6 @@ _ = ekf.predict(0.1, np.zeros(2), 0.5)
 # _ = ekf._correct_cov_sys(K, ekf.H_gnss, J_gnss)
 _ = ekf.correct_compass(0.5, J_compass)
 _ = ekf.correct_gnss_2d(np.zeros(2), J_gnss)
+_ = ekf.correct_velocity_2d(np.array([1.0, 0.0]), J_velocity)
 
 print("The imu_ekf_2d class has been compiled !")
