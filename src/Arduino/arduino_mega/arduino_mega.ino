@@ -78,6 +78,8 @@ int check_stepper_stall_count = 0;
 
 /************* STEERING GLOBAL VARIABLE *************/
 float steering_angle = 0; // Degree
+float steering_angle_last = 0; // Degree
+float steering_angle_outlier_threshold = 0.5; // Degree
 float steering_setpoint = 0;
 float steering_delta_min_move = 0.3; // degree (must be less than stay)
 float steering_delta_min_stay = 0.5; // degree (must be greater than move)
@@ -217,10 +219,20 @@ void sensing_steering() {
   //preprocessing
   if(angle<500) { angle += 1024;}
   angle -= 500;
+
+  float temp = steering_gradient*angle + steering_bias; // convert encoder to angle (ackerman)
+  if (abs(temp - steering_angle_last) >= abs(steering_angle_outlier_threshold)){
+    // This must be an outlier
+    // Reject the measurement data
+    steering_angle = steering_angle;
+  }
+  else{
+    // Accept the measurement data
+    steering_angle = temp;
+  }
   
-  steering_angle = steering_gradient*angle + steering_bias; // convert encoder to angle (ackerman)
   pub_msg.steer.actual = steering_angle;
-  
+  steering_angle_last = temp;
 }
 
 void process_steering() {
