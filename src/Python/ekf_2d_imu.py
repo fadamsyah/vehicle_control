@@ -110,11 +110,11 @@ class imu_ekf_2d(object):
 
     def correct_vehicle_movement_constraint(self, J):
         H_vmc = np.zeros((1,8))
-        H_vmc[:, 2:4] = (self._yaw_to_rot(self.yaw).T)[1]
-        H_vmc[:, 4] = np.dot(self._yaw_to_rot_dot(self.yaw).T, self.v)[1]
+        H_vmc[0, 2:4] = (self._yaw_to_rot(self.yaw).T)[1,:]
+        H_vmc[0, 4] = np.dot(self._yaw_to_rot_dot(self.yaw).T, self.v)[1]
 
         K = self._kalman_gain(H_vmc, J)
-        inno = np.array([0. - self.v[-1]])
+        inno = np.array([0. - np.dot(self._yaw_to_rot(self.yaw).T, self.v)[1]])
         dx = np.dot(K, inno)
 
         self._correct_state_from_inno(dx)
