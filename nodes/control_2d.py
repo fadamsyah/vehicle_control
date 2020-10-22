@@ -12,7 +12,6 @@ sys.path.append(os.path.abspath(sys.path[0] + '/../src/Python'))
 from stanley_2d import Controller
 
 # Initialize the control node
-topic = rospy.get_param('~topic', '/control_signal')
 rospy.init_node('control')
 
 # The actual state
@@ -32,6 +31,8 @@ def callback(msg_nav):
     RUN = True
 
 # Global Variable
+topic_pub = rospy.get_param('~topic_pub', '/control_signal')
+topic_sub = rospy.get_param('~topic_sub', '/state_2d')
 freq = rospy.get_param('~freq', 20.) # Hz
 ff_1 = rospy.get_param('~ff_1', 0.0)
 ff_2 = rospy.get_param('~ff_2', 0.0)
@@ -71,8 +72,8 @@ controller = Controller(kp, ki, kd, feed_forward_params, sat_long,\
                         waypoints, min_vel_move,\
                         max_throttle_move, min_throttle_move, kv_yaw, kv_lat)
 
-rospy.Subscriber('/state_2d_new', State_EKF_2D, callback)
-pub = rospy.Publisher(topic, Control, queue_size=1)
+rospy.Subscriber(topic_sub, State_EKF_2D, callback)
+pub = rospy.Publisher(topic_pub, Control, queue_size=1)
 rate = rospy.Rate(freq) # Hz
 
 # Wait until we get the actual state
