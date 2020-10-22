@@ -11,13 +11,15 @@ from vehicle_control.msg import State_EKF_2D
 sys.path.append(os.path.abspath(sys.path[0] + '/../src/Python'))
 from stanley_2d import Controller
 
+# Initialize the control node
+topic = rospy.get_param('~topic', '/control_signal')
 rospy.init_node('control')
 
 # The actual state
 state = {'x': 0., 'y': 0., 'yaw': 0., 'v': 0.}
 RUN = False
 
-# Receive the estimated state
+# Callback for receiving the estimated state
 def callback(msg_nav):
     global state
     global RUN
@@ -26,10 +28,10 @@ def callback(msg_nav):
     state['y'] = msg_nav.py
     state['v'] = np.sqrt(msg_nav.vx**2 + msg_nav.vy**2)
     state['yaw'] = msg_nav.yaw
-    # state['yaw'] = msg_nav.yaw_imu
 
     RUN = True
 
+# Global Variable
 freq = rospy.get_param('~freq', 20.) # Hz
 ff_1 = rospy.get_param('~ff_1', 0.0)
 ff_2 = rospy.get_param('~ff_2', 0.0)
@@ -51,6 +53,12 @@ sat_lat_max = rospy.get_param('~sat_lat_max', 0.6109)
 sat_lat_min = rospy.get_param('~sat_lat_min', -0.4887)
 waypoints_path = rospy.get_param('~waypoints_path', 'wp_monev_baru.npy')
 waypoints_path = os.path.abspath(sys.path[0] + '/../src/waypoints/waypoints/' + waypoints_path)
+
+max_steer_arduino = (-1.)*sat_lat_min*180./np.pi # deg.
+min_steer_arduino = (-1.)*sat_lat_max*180./np.pi # deg.
+
+max_throttle = sat_long_max
+min_throttle = 0.0 # zero voltage
 
 feed_forward_params = np.array([ff_1, ff_2])
 sat_long = np.array([sat_long_min, sat_long_max])
@@ -105,7 +113,7 @@ while not rospy.is_shutdown():
     # Cotrol action
     msg.action_steer = max(min(-lat*180/np.pi, max_steer_arduino), min_steer_arduino) # lat ~ (rad)
     msg.action_throttle = max(min(long, max_throttle), min_throttle)
-    #msg.action_brake = max(min(-long, max_brake), 0.)
+    # msg.action_brake = max(min(-long, max_brake), 0.)
     msg.action_brake = 0.
     # Error profile
     msg.error_speed = err[0] # (m/s)
