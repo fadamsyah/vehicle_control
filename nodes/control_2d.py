@@ -72,7 +72,7 @@ controller = Controller(kp, ki, kd, feed_forward_params, sat_long,\
                         max_throttle_move, min_throttle_move, kv_yaw, kv_lat)
 
 rospy.Subscriber('/state_2d_new', State_EKF_2D, callback)
-pub = rospy.Publisher('/control_signal', Control, queue_size=1)
+pub = rospy.Publisher(topic, Control, queue_size=1)
 rate = rospy.Rate(freq) # Hz
 
 # Wait until we get the actual state
