@@ -18,7 +18,7 @@ ff_2: 0.0
 ff_3: 0.0
 ### Feedback controller (PID)
 kp: 0.11
-ki: 0.30
+ki: 0.25
 kd: 0.015
 ### Saturation value
 sat_long_max: 0.3 # (%)

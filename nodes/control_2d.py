@@ -9,7 +9,7 @@ from vehicle_control.msg import Control
 from vehicle_control.msg import State_EKF_2D
 
 sys.path.append(os.path.abspath(sys.path[0] + '/../src/Python'))
-from stanley_2d import Controller
+from stanley_2d_v2 import Controller
 
 # Initialize the control node
 rospy.init_node('control')
@@ -34,8 +34,11 @@ def callback(msg_nav):
 topic_pub = rospy.get_param('~topic_pub', '/control_signal')
 topic_sub = rospy.get_param('~topic_sub', '/state_2d')
 freq = rospy.get_param('~freq', 20.) # Hz
+fc_long = rospy.get_param('~fc_long', 5.) # Hz
+fc_lat = rospy.get_param('~fc_lat', 5.) # Hz
 ff_1 = rospy.get_param('~ff_1', 0.0)
 ff_2 = rospy.get_param('~ff_2', 0.0)
+ff_3 = rospy.get_param('~ff_3', 0.0)
 kp = rospy.get_param('~kp', 0.11)
 ki = rospy.get_param('~ki', 0.30)
 kd = rospy.get_param('~kd', 0.015)
@@ -44,8 +47,6 @@ sat_long_min = rospy.get_param('~sat_long_min', -2.9)
 kv_yaw = rospy.get_param('~kv_yaw', 2.25)
 kv_lat = rospy.get_param('~kv_lat', 0.75)
 min_vel_move = rospy.get_param('~min_vel_move', 0.5)
-max_throttle_move = rospy.get_param('~max_throttle_move', 0.3)
-min_throttle_move = rospy.get_param('~min_throttle_move', 0.3)
 length = rospy.get_param('~length', 1.7)
 ks = rospy.get_param('~ks', 0.75)
 kv = rospy.get_param('~kv', 1.00)
@@ -61,16 +62,16 @@ min_steer_arduino = (-1.)*sat_lat_max*180./np.pi # deg.
 max_throttle = sat_long_max
 min_throttle = 0.0 # zero voltage
 
-feed_forward_params = np.array([ff_1, ff_2])
+feed_forward_params = np.array([ff_1, ff_2, ff_3])
 sat_long = np.array([sat_long_min, sat_long_max])
 sat_lat = np.array([sat_lat_min, sat_lat_max])
 waypoints = np.load(waypoints_path)
 
 # Create the controller object
-controller = Controller(kp, ki, kd, feed_forward_params, sat_long,\
-                        ks, kv, length, lateral_dead_band, sat_lat,\
-                        waypoints, min_vel_move,\
-                        max_throttle_move, min_throttle_move, kv_yaw, kv_lat)
+controller = Controller(kp, ki, kd, feed_forward_params, sat_long,
+                        ks, kv, length, lateral_dead_band, sat_lat,
+                        waypoints, min_vel_move, kv_yaw, kv_lat,
+                        fc_long, fc_lat)
 
 rospy.Subscriber(topic_sub, State_EKF_2D, callback)
 pub = rospy.Publisher(topic_pub, Control, queue_size=1)
